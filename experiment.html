@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cognitive Map Experiment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Drag and Drop the Icons</h1>
+  
+  <!-- Circle where icons will be placed -->
+  <div id="circle-container">
+    <div id="circle"></div>
+  </div>
+
+  <!-- Pool of icons for the participant to drag -->
+  <div id="icon-pool">
+    <!-- Add more icons here as needed -->
+    <img src="apple.png" class="draggable" alt="apple">
+    <img src="banana.png" class="draggable" alt="banana">
+    <img src="shoe.png" class="draggable" alt="shoe">
+    <!-- Add other items/icons similarly -->
+  </div>
+
+  <!-- Submit button to save the data -->
+  <button onclick="saveMap()">Save Map</button>
+
+  <script src="script.js"></script>
+</body>
+</html>
