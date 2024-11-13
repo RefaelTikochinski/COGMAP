@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cognitive Map Experiment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Cognitive Map Experiment</h1>
+  <p>Please enter the last 4 digits of your ID to begin the experiment:</p>
+
+  <!-- Participant ID input field -->
+  <input type="text" id="participant-id" placeholder="Last 4 digits of your ID" maxlength="4" required>
+  <button onclick="startExperiment()">Start Experiment</button>
+
+  <p>After you start the experiment, you can drag and drop the icons into the circle to map them out.</p>
+
+  <script>
+    function startExperiment() {
+      const participantId = document.getElementById('participant-id').value;
+      
+      // Check if the ID is exactly 4 digits
+      if (participantId.length !== 4 || isNaN(participantId)) {
+        alert("Please enter exactly 4 digits.");
+        return;
+      }
+
+      // Store the participant ID in local storage to be accessed during the experiment
+      localStorage.setItem('participantId', participantId);
+
+      // Redirect to the experiment page
+      window.location.href = 'experiment.html';  // Redirect to the experiment page
+    }
+  </script>
+</body>
+</html>
