@@ -8,29 +8,96 @@
 </head>
 <body>
   <h1>Cognitive Map Experiment</h1>
-  <p>Please enter the last 4 digits of your ID to begin the experiment:</p>
+  <p>Drag each icon into the circle. You can reposition it by dragging it again.</p>
 
-  <!-- Participant ID input field -->
-  <input type="text" id="participant-id" placeholder="Last 4 digits of your ID" maxlength="4" required>
-  <button onclick="startExperiment()">Start Experiment</button>
+  <div id="pool">
+    <!-- Icons pool with unique draggable images -->
+    <img src="images/apple.png" class="draggable" alt="Apple">
+    <img src="images/banana.png" class="draggable" alt="Banana">
+    <img src="images/shoe.png" class="draggable" alt="Shoe">
+    <!-- Add more icons as needed -->
+  </div>
 
-  <p>After you start the experiment, you can drag and drop the icons into the circle to map them out.</p>
+  <div id="circle"></div>
+
+  <button onclick="saveMap()">Save Map</button>
 
   <script>
-    function startExperiment() {
-      const participantId = document.getElementById('participant-id').value;
-      
-      // Check if the ID is exactly 4 digits
-      if (participantId.length !== 4 || isNaN(participantId)) {
-        alert("Please enter exactly 4 digits.");
-        return;
-      }
+    const circle = document.getElementById('circle');
+    const icons = document.querySelectorAll('.draggable');
 
-      // Store the participant ID in local storage to be accessed during the experiment
-      localStorage.setItem('participantId', participantId);
+    icons.forEach(icon => {
+      icon.addEventListener('mousedown', (e) => {
+        e.preventDefault();
 
-      // Redirect to the experiment page
-      window.location.href = 'experiment.html';  // Redirect to the experiment page
+        // Only start drag if the icon is still in the pool
+        if (!icon.classList.contains('used')) {
+          document.addEventListener('mousemove', onDrag);
+          document.addEventListener('mouseup', onDrop);
+
+          // Save the initial position of the mouse relative to the icon
+          let offsetX = e.offsetX;
+          let offsetY = e.offsetY;
+
+          // Add a temporary class to the icon to indicate it's being moved
+          icon.classList.add('moving');
+
+          function onDrag(event) {
+            icon.style.position = 'absolute';
+            icon.style.left = `${event.pageX - offsetX}px`;
+            icon.style.top = `${event.pageY - offsetY}px`;
+          }
+
+          function onDrop(event) {
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', onDrop);
+
+            // Check if dropped in the circle
+            const circleRect = circle.getBoundingClientRect();
+            const iconRect = icon.getBoundingClientRect();
+
+            if (
+              iconRect.left >= circleRect.left &&
+              iconRect.right <= circleRect.right &&
+              iconRect.top >= circleRect.top &&
+              iconRect.bottom <= circleRect.bottom
+            ) {
+              icon.classList.add('dropped-icon');
+              icon.classList.add('used');  // Mark icon as used
+              icon.classList.remove('moving');
+              icon.draggable = true; // Make the icon draggable again for repositioning
+              circle.appendChild(icon); // Move the icon to the circle
+            } else {
+              icon.style.position = '';
+              icon.style.left = '';
+              icon.style.top = '';
+            }
+          }
+        }
+      });
+    });
+
+    // Save the cognitive map data
+    function saveMap() {
+      const participantId = localStorage.getItem('participantId');
+      const iconsData = [];
+
+      // Collect the positions of the dropped icons inside the circle
+      document.querySelectorAll('.dropped-icon').forEach(icon => {
+        const rect = icon.getBoundingClientRect();
+        const circleRect = circle.getBoundingClientRect();
+        iconsData.push({
+          icon: icon.src.split('/').pop(), // Extract the icon name (e.g., 'apple.png')
+          x: rect.left - circleRect.left + rect.width / 2, // X position
+          y: rect.top - circleRect.top + rect.height / 2  // Y position
+        });
+      });
+
+      // Store the data in localStorage or send it to a backend
+      localStorage.setItem('mapData', JSON.stringify({ participantId, iconsData }));
+
+      // Confirm save action
+      alert('Map saved! Your data has been saved successfully.');
     }
   </script>
 </body>
