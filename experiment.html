@@ -7,23 +7,128 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Drag and Drop the Icons</h1>
-  
-  <!-- Circle where icons will be placed -->
-  <div id="circle-container">
-    <div id="circle"></div>
-  </div>
+  <h1>Cognitive Map Experiment</h1>
+  <p>Please enter the last 4 digits of your ID to begin the experiment:</p>
 
-  <!-- Pool of icons for the participant to drag -->
-  <div id="icon-pool">
-    <img src="images/apple.jpeg" class="draggable" alt="apple">
+  <!-- Participant ID input field -->
+  <input type="text" id="participant-id" placeholder="Last 4 digits of your ID" maxlength="4" required>
+  <button onclick="startExperiment()">Start Experiment</button>
+
+  <div id="experiment-container" style="display:none;">
+    <p>After you start the experiment, drag and drop the icons into the circle to map them out. You can reposition them by dragging again within the circle.</p>
     
-    <!-- Add other items/icons similarly -->
+    <div id="pool">
+      <!-- Icons pool with unique draggable images -->
+      <img src="images/apple.png" class="draggable" alt="Apple">
+      <img src="images/banana.png" class="draggable" alt="Banana">
+      <img src="images/shoe.png" class="draggable" alt="Shoe">
+      <!-- Add more icons as needed -->
+    </div>
+
+    <div id="circle"></div>
+
+    <button onclick="saveMap()">Save Map</button>
   </div>
 
-  <!-- Submit button to save the data -->
-  <button onclick="saveMap()">Save Map</button>
+  <script>
+    function startExperiment() {
+      const participantId = document.getElementById('participant-id').value;
+      
+      // Check if the ID is exactly 4 digits
+      if (participantId.length !== 4 || isNaN(participantId)) {
+        alert("Please enter exactly 4 digits.");
+        return;
+      }
 
-  <script src="script.js"></script>
+      // Store the participant ID in local storage to be accessed during the experiment
+      localStorage.setItem('participantId', participantId);
+
+      // Show the experiment elements
+      document.getElementById('experiment-container').style.display = 'block';
+    }
+
+    const circle = document.getElementById('circle');
+    const icons = document.querySelectorAll('.draggable');
+
+    icons.forEach(icon => {
+      // Drag start for icons from the pool
+      icon.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+
+        // Only start dragging if the icon has not already been placed in the circle
+        if (!icon.classList.contains('used')) {
+          startDragging(icon, e);
+        }
+      });
+    });
+
+    function startDragging(icon, e) {
+      let offsetX = e.offsetX;
+      let offsetY = e.offsetY;
+
+      function onDrag(event) {
+        icon.style.position = 'absolute';
+        icon.style.left = `${event.pageX - offsetX}px`;
+        icon.style.top = `${event.pageY - offsetY}px`;
+      }
+
+      function onDrop(event) {
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mouseup', onDrop);
+
+        const circleRect = circle.getBoundingClientRect();
+        const iconRect = icon.getBoundingClientRect();
+
+        // Check if the icon is dropped within the circle boundaries
+        if (
+          iconRect.left >= circleRect.left &&
+          iconRect.right <= circleRect.right &&
+          iconRect.top >= circleRect.top &&
+          iconRect.bottom <= circleRect.bottom
+        ) {
+          icon.classList.add('dropped-icon');
+          icon.classList.add('used'); // Mark icon as used once placed in the circle
+          icon.draggable = true; // Make the icon draggable again for repositioning
+          circle.appendChild(icon); // Move the icon to the circle
+          
+          // Enable repositioning
+          icon.addEventListener('mousedown', (e) => {
+            startDragging(icon, e);
+          });
+        } else {
+          // Reset icon position if dropped outside the circle
+          icon.style.position = '';
+          icon.style.left = '';
+          icon.style.top = '';
+        }
+      }
+
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', onDrop);
+    }
+
+    // Save the cognitive map data
+    function saveMap() {
+      const participantId = localStorage.getItem('participantId');
+      const iconsData = [];
+
+      // Collect the positions of the dropped icons inside the circle
+      document.querySelectorAll('.dropped-icon').forEach(icon => {
+        const rect = icon.getBoundingClientRect();
+        const circleRect = circle.getBoundingClientRect();
+        iconsData.push({
+          icon: icon.src.split('/').pop(), // Extract the icon name (e.g., 'apple.png')
+          x: rect.left - circleRect.left + rect.width / 2, // X position
+          y: rect.top - circleRect.top + rect.height / 2  // Y position
+        });
+      });
+
+      // Store the data in localStorage or send it to a backend (if available)
+      localStorage.setItem('mapData', JSON.stringify({ participantId, iconsData }));
+
+      // Confirm save action
+      alert('Map saved! Your data has been saved successfully.');
+    }
+  </script>
 </body>
 </html>
