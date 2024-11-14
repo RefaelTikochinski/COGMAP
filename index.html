@@ -8,12 +8,13 @@
 </head>
 <body>
   <h1>Cognitive Map Experiment</h1>
-  <p>Drag each icon into the circle. You can reposition it by dragging it again.</p>
+  <p>Drag each icon into the circle. You can reposition it by dragging it again within the circle.</p>
 
   <div id="pool">
     <!-- Icons pool with unique draggable images -->
-    <img src="images/apple.jpeg" class="draggable" alt="Apple">
-  
+    <img src="images/apple.png" class="draggable" alt="Apple">
+    <img src="images/banana.png" class="draggable" alt="Banana">
+    <img src="images/shoe.png" class="draggable" alt="Shoe">
     <!-- Add more icons as needed -->
   </div>
 
@@ -26,55 +27,61 @@
     const icons = document.querySelectorAll('.draggable');
 
     icons.forEach(icon => {
+      // Start drag for icons from the pool
       icon.addEventListener('mousedown', (e) => {
         e.preventDefault();
 
-        // Only start drag if the icon is still in the pool
+        // Only start dragging if the icon has not already been placed in the circle
         if (!icon.classList.contains('used')) {
-          document.addEventListener('mousemove', onDrag);
-          document.addEventListener('mouseup', onDrop);
-
-          // Save the initial position of the mouse relative to the icon
-          let offsetX = e.offsetX;
-          let offsetY = e.offsetY;
-
-          // Add a temporary class to the icon to indicate it's being moved
-          icon.classList.add('moving');
-
-          function onDrag(event) {
-            icon.style.position = 'absolute';
-            icon.style.left = `${event.pageX - offsetX}px`;
-            icon.style.top = `${event.pageY - offsetY}px`;
-          }
-
-          function onDrop(event) {
-            document.removeEventListener('mousemove', onDrag);
-            document.removeEventListener('mouseup', onDrop);
-
-            // Check if dropped in the circle
-            const circleRect = circle.getBoundingClientRect();
-            const iconRect = icon.getBoundingClientRect();
-
-            if (
-              iconRect.left >= circleRect.left &&
-              iconRect.right <= circleRect.right &&
-              iconRect.top >= circleRect.top &&
-              iconRect.bottom <= circleRect.bottom
-            ) {
-              icon.classList.add('dropped-icon');
-              icon.classList.add('used');  // Mark icon as used
-              icon.classList.remove('moving');
-              icon.draggable = true; // Make the icon draggable again for repositioning
-              circle.appendChild(icon); // Move the icon to the circle
-            } else {
-              icon.style.position = '';
-              icon.style.left = '';
-              icon.style.top = '';
-            }
-          }
+          startDragging(icon, e);
         }
       });
     });
+
+    function startDragging(icon, e) {
+      let offsetX = e.offsetX;
+      let offsetY = e.offsetY;
+
+      function onDrag(event) {
+        icon.style.position = 'absolute';
+        icon.style.left = `${event.pageX - offsetX}px`;
+        icon.style.top = `${event.pageY - offsetY}px`;
+      }
+
+      function onDrop(event) {
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mouseup', onDrop);
+
+        const circleRect = circle.getBoundingClientRect();
+        const iconRect = icon.getBoundingClientRect();
+
+        // Check if the icon is dropped within the circle boundaries
+        if (
+          iconRect.left >= circleRect.left &&
+          iconRect.right <= circleRect.right &&
+          iconRect.top >= circleRect.top &&
+          iconRect.bottom <= circleRect.bottom
+        ) {
+          icon.classList.add('dropped-icon');
+          icon.classList.add('used'); // Mark icon as used once placed in the circle
+          icon.draggable = true; // Make the icon draggable again for repositioning
+          circle.appendChild(icon); // Move the icon to the circle
+          
+          // Make the icon draggable again within the circle
+          icon.addEventListener('mousedown', (e) => {
+            startDragging(icon, e);
+          });
+        } else {
+          // Reset icon position if dropped outside the circle
+          icon.style.position = '';
+          icon.style.left = '';
+          icon.style.top = '';
+        }
+      }
+
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', onDrop);
+    }
 
     // Save the cognitive map data
     function saveMap() {
@@ -92,7 +99,7 @@
         });
       });
 
-      // Store the data in localStorage or send it to a backend
+      // Store the data in localStorage or send it to a backend (if available)
       localStorage.setItem('mapData', JSON.stringify({ participantId, iconsData }));
 
       // Confirm save action
