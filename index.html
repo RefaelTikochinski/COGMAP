@@ -8,13 +8,18 @@
 </head>
 <body>
   <h1>Cognitive Map Experiment</h1>
-  <p>Drag each icon into the circle. You can reposition it by dragging it again within the circle.</p>
+  <p>Please enter the last 4 digits of your ID to begin the experiment:</p>
+
+  <!-- Participant ID input field -->
+  <input type="text" id="participant-id" placeholder="Last 4 digits of your ID" maxlength="4" required>
+  <button onclick="startExperiment()">Start Experiment</button>
+
+  <p>After you start the experiment, you can drag and drop the icons into the circle to map them out.</p>
 
   <div id="pool">
     <!-- Icons pool with unique draggable images -->
-    <img src="images/apple.png" class="draggable" alt="Apple">
-    <img src="images/banana.png" class="draggable" alt="Banana">
-    <img src="images/shoe.png" class="draggable" alt="Shoe">
+    <img src="images/apple.jpeg" class="draggable" alt="Apple">
+
     <!-- Add more icons as needed -->
   </div>
 
@@ -23,6 +28,23 @@
   <button onclick="saveMap()">Save Map</button>
 
   <script>
+    function startExperiment() {
+      const participantId = document.getElementById('participant-id').value;
+      
+      // Check if the ID is exactly 4 digits
+      if (participantId.length !== 4 || isNaN(participantId)) {
+        alert("Please enter exactly 4 digits.");
+        return;
+      }
+
+      // Store the participant ID in local storage to be accessed during the experiment
+      localStorage.setItem('participantId', participantId);
+
+      // Start the experiment by enabling the icons and other elements
+      document.getElementById('pool').style.display = 'block';
+      document.getElementById('circle').style.display = 'block';
+    }
+
     const circle = document.getElementById('circle');
     const icons = document.querySelectorAll('.draggable');
 
@@ -95,16 +117,4 @@
         iconsData.push({
           icon: icon.src.split('/').pop(), // Extract the icon name (e.g., 'apple.png')
           x: rect.left - circleRect.left + rect.width / 2, // X position
-          y: rect.top - circleRect.top + rect.height / 2  // Y position
-        });
-      });
-
-      // Store the data in localStorage or send it to a backend (if available)
-      localStorage.setItem('mapData', JSON.stringify({ participantId, iconsData }));
-
-      // Confirm save action
-      alert('Map saved! Your data has been saved successfully.');
-    }
-  </script>
-</body>
-</html>
+          y: rect.top - circleRect.top
